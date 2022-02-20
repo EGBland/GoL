@@ -4,6 +4,9 @@ import Prelude hiding (lookup)
 import qualified Prelude as P
 
 import Data.Maybe (fromMaybe)
+import Text.Printf (printf)
+
+import PPM hiding (Dimension)
 
 lookup :: (Eq a) => [(a,b)] -> a -> Maybe b
 lookup = flip P.lookup
@@ -70,8 +73,28 @@ printGame :: GameState -> IO ()
 printGame ((w,h),grid) = sequence_ [printGameLine ((w,h),grid) y | y <- [1..h]]
 
 
+tile2pixel :: TileState -> Pixel
+tile2pixel (_,True) = (0,0,0)
+tile2pixel (_,False) = (255,255,255)
+
+game2image :: GameState -> Image
+game2image ((w,h),tiles) =
+    let
+        tilesFull = [((x,y),lookupTile ((w,h),tiles) (x,y)) | x <- [1..w], y <- [1..h]]
+        pixels    = map tile2pixel tilesFull
+    in
+        ((w,h),pixels)
+
 testGame :: GameState
-testGame = ((10,10),glider)
+testGame = ((20,20),glider)
+
+
+writeState :: (Int,GameState) -> IO ()
+writeState (n,gs) = do
+    let filename = printf "state%d.ppm" n
+    writeFile filename . writeImage . game2image $ gs
 
 main :: IO ()
-main = printGame $ runGame 2 testGame
+main = do
+    let states = scanr (\x (_,acc) -> (x,stepGame acc)) (0,testGame) [1..20]
+    sequence_ $ map writeState states
