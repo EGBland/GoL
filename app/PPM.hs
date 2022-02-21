@@ -1,14 +1,25 @@
 module PPM (
     Pixel, Dimension, Image,
-    writeImage
+    writeImage, scaleImage
 )
 where
 
+import Data.List.Split (chunksOf)
 import Text.Printf (printf)
 
 type Pixel = (Int,Int,Int)
 type Dimension = (Int,Int)
 type Image = (Dimension,[Pixel])
+
+scaleImage :: Int -> Image -> Image
+scaleImage n ((w,h),pxs) =
+    let
+        lines = chunksOf w pxs
+        linesDuped = map (map $ replicate n) lines
+        linesScaled = map concat linesDuped
+        pxsScaled = concat . concat $ map (replicate n) linesScaled
+    in
+        ((w*n,h*n),pxsScaled)
 
 writeImage :: Image -> String
 writeImage ((w,h),pxs) =

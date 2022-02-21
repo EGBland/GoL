@@ -92,9 +92,9 @@ testGame = ((20,20),glider)
 writeState :: (Int,GameState) -> IO ()
 writeState (n,gs) = do
     let filename = printf "state%d.ppm" n
-    writeFile filename . writeImage . game2image $ gs
+    writeFile filename . writeImage . (scaleImage 10) . game2image $ gs
 
 main :: IO ()
 main = do
-    let states = scanr (\x (_,acc) -> (x,stepGame acc)) (0,testGame) [1..20]
+    let states = scanl (\(_,acc) x -> (x,stepGame acc)) (0,testGame) [1..40]
     sequence_ $ map writeState states
